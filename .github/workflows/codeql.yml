@@ -18,14 +18,19 @@ on:
     # The branches below must be a subset of the branches above
     branches: [ "16.0" ]
   schedule:
-    - cron: '45 12 * * 2'
+    - cron: '43 5 * * 6'
 
 jobs:
   analyze:
     name: Analyze
+    # Runner size impacts CodeQL analysis time. To learn more, please see:
+    #   - https://gh.io/recommended-hardware-resources-for-running-codeql
+    #   - https://gh.io/supported-runners-and-hardware-resources
+    #   - https://gh.io/using-larger-runners
+    # Consider using larger runners for possible analysis time improvements.
     runs-on: ${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest' }}
     timeout-minutes: ${{ (matrix.language == 'swift' && 120) || 360 }}
-    permissions: write-all
+    permissions: write-allwe
     strategy:
       fail-fast: false
       matrix:
@@ -71,3 +76,34 @@ jobs:
       uses: github/codeql-action/analyze@v2
       with:
         category: "/language:${{matrix.language}}"
+    - name: Workflow Scan Action
+      # You may pin to the exact commit or the version.
+      # uses: rcowsill/workflow-scan-action@0553443f84cd009649df2e4db372ea47da509733
+      uses: rcowsill/workflow-scan-action@v1.1.0
+      with:
+        # Comma-separated list of additional queries to run
+        extra-queries:*
+        # Whether to use the default workflow-security-suite queries
+        use-default-queries: true
+        # Whether to upload the SARIF file to Code Scanning
+        upload: true
+        # Name of the directory which will hold data needed by the action
+        data-dir-name: # optional, default is workflow-scan-action-data
+
+    - name: CodeQL Bundle
+          # You may pin to the exact commit or the version.
+          # uses: advanced-security/codeql-bundle-action@9437ba7f33c2a978c8897fb21b2a7e0809199d20
+      uses: advanced-security/codeql-bundle-action@v1.1.0
+      with:
+        # The tag of bundle release to customize (e.g., codeql-bundle-20220311)
+        bundle-version: # optional, default is latest
+        # A comma-separated list of CodeQL packs to include in the bundle
+        packs: 
+        # Root directory where the codeql-workspace.yml file is located
+        workspace: # optional, default is .
+        # Upload the created bundle
+        upload: # optional, default is true
+        # 
+        token: # optional, default is ${{ github.token }}
+        # The max number of packs that will be processed concurrently
+        concurrency-limit: # optional, default is 2
